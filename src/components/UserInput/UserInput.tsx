@@ -1,4 +1,5 @@
 import * as React from "react";
+import throttle from  'lodash/throttle';
 import Form from "@cloudscape-design/components/form";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Button from "@cloudscape-design/components/button";
@@ -9,9 +10,28 @@ import { DatePicker } from "@cloudscape-design/components";
 import RadioGroup from "@cloudscape-design/components/radio-group";
 import Autosuggest, { AutosuggestProps } from "@cloudscape-design/components/autosuggest";
 import './userInput.css'
-import { AirportResponse, getAutoCompleteList, getResponseFromServer } from "../../util/ApiUtil";
+import { AirportResponse, FlightData  } from "../../constants/IFlightTracker";
+import FlightTable from "../FlightTable/FlightTable"
+import { arrayFlights, extractFlightData, getAutoCompleteList, getResponseFromServer, mapFlightData } from "../../util/FlightUtil";
 
 export default function UserInput() {
+  const fArray: FlightData[] = [{
+    outwardLeg: [{
+      source: '',
+      destination: '',
+      departureTime: '',
+      arrivalTime: '',
+      carrierName: '',
+    }],
+    returnLeg: [{
+      source: '',
+      destination: '',
+      departureTime: '',
+      arrivalTime: '',
+      carrierName: '',
+    }],
+    price: ''
+  }]
 
   const [departureDate, setDepartureDate] = React.useState("");
   const [returnDate, setReturnDate] = React.useState("");
@@ -24,6 +44,7 @@ export default function UserInput() {
   const [destId, setDestId] = React.useState("")
   const [sourceErrorMsg, setSourceErrorMsg] = React.useState("")
   const [destErrorMsg, setDestErrorMsg] = React.useState("")
+  const [flightArray, setFlightArray] = React.useState(fArray)
   
   const handleSubmit =  async (e: React.FormEvent<HTMLFormElement>, departureDate: string, returnDate: string, source: string, dest: string, srcId: string, destId: string, tripType: string) => {
     e.preventDefault();
@@ -58,11 +79,18 @@ export default function UserInput() {
         
     }
         const resp = await getResponseFromServer('flightTrack', params)
-        console.log('Response: ', resp)
+        const fData = extractFlightData(resp?.data.data)
+        const fMap = arrayFlights(mapFlightData(fData));
+        setFlightArray(fMap);
     } catch(e) {
         console.log('Error', e)
     }
 }
+
+const completeAutoSuggest = throttle(async function(text: string) {
+  const suggestions = await getAutoCompleteList(text);
+  return suggestions
+}, 1000)
 
   const handleSourceChange = async (sourceInput: string) => {
     setSource(sourceInput);
@@ -70,7 +98,8 @@ export default function UserInput() {
       setSourceSuggestions([{label: "", value: ""}])
     } else if (sourceInput !== undefined && sourceInput.length > 0) {
       setSourceErrorMsg("")
-      const suggestions = await getAutoCompleteList(sourceInput);
+      let suggestions: AirportResponse[] = []
+      suggestions = await completeAutoSuggest(sourceInput) ?? []
       const suggestionsList: AirportResponse[] = []
       suggestions.forEach((record: AirportResponse) => suggestionsList.push(record))
       setSourceSuggestions(suggestionsList);
@@ -83,7 +112,8 @@ export default function UserInput() {
       setDestSuggestions([{label: "", value: ""}])
     } else if (destinationInput !== undefined && destinationInput.length > 0) {
       setDestErrorMsg("")
-      const suggestions = await getAutoCompleteList(destinationInput);
+      let suggestions: AirportResponse[] = []
+      suggestions = await completeAutoSuggest(destinationInput) ?? []
       const suggestionsList: AirportResponse[] = []
       suggestions.forEach((record: AirportResponse) => suggestionsList.push(record))
       setDestSuggestions(suggestionsList);
@@ -195,6 +225,7 @@ export default function UserInput() {
           </Container>
         </Form>
       </form>
+      <FlightTable flights={flightArray} />
       </>
     );
 }
