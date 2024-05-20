@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+
+  flight-tracker:
+    container_name: flight-tracker
+    build: ./flight-tracker
+    volumes:
+      - './:/app'
+      - '/app/node_modules'
+    ports:
+      - 3000:3000
+    stdin_open: true
+    command: npm start

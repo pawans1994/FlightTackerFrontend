@@ -105,6 +105,7 @@ export const mapFlightData = (itineraryData: FlightData[]) => {
     return priceMap
 
 }
+
   
   
   
@@ -117,7 +118,7 @@ export const getAutoCompleteList = async (query: string) => {
         query: query,
     }
     const apiResp = await getResponseFromServer('getAutoCompleteList', params);
-    if (apiResp?.data) {
+    if (apiResp?.data.data) {
         for (const airport of apiResp?.data.data) {
             if (airport.navigation.entityType === 'AIRPORT') {
                 const currObject = {
