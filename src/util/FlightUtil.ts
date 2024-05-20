@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { AirportResponse, FlightData, FlightDetails } from '../constants/IFlightTracker'
+import { BACKEND_URL } from '../constants/constants'
 
 export const getResponseFromServer = async (endpoint: string, params: any) => {
     try {
-        const resp = await axios.get(`http://127.0.0.1:5000/${endpoint}`, {
+        const resp = await axios.get(`${BACKEND_URL}/${endpoint}`, {
             params: params,
           })
           return resp
