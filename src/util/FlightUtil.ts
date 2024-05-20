@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { AirportResponse, FlightData, FlightDetails } from '../constants/IFlightTracker'
+import { BACKEND_URL } from '../constants/constants'
 
 export const getResponseFromServer = async (endpoint: string, params: any) => {
     try {
-        const resp = await axios.get(`http://127.0.0.1:5000/${endpoint}`, {
+        const resp = await axios.get(`${BACKEND_URL}/${endpoint}`, {
             params: params,
           })
           return resp
@@ -105,6 +106,7 @@ export const mapFlightData = (itineraryData: FlightData[]) => {
     return priceMap
 
 }
+
   
   
   
@@ -117,7 +119,7 @@ export const getAutoCompleteList = async (query: string) => {
         query: query,
     }
     const apiResp = await getResponseFromServer('getAutoCompleteList', params);
-    if (apiResp?.data) {
+    if (apiResp?.data.data) {
         for (const airport of apiResp?.data.data) {
             if (airport.navigation.entityType === 'AIRPORT') {
                 const currObject = {
